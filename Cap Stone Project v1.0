@@ -1,0 +1,189 @@
+#Requirements
+#Built from scratch, references allowed, but not copying
+#Variables, use of int and str values, user input, output, conditionals, loops, Function, Data Structer, Basic expressions, User interaction
+
+#Capstone Project for Final
+#Text adventure with 10, 20, or 30 floors, basic, preset enemies based of floors.
+#Start with 1 move and get many through the floors, moves will be preset
+
+
+#libraries
+import random
+import time
+
+
+
+#class to hold all dungeon information, including player and enemies
+class Dungeon:
+    all_enemies = []  #all ememies in the order they will be fought
+    def __init__(self, floors):
+        self.current_floor = 1
+        return
+    def show_stats(self):
+        print(self.name)
+        print(self.health, 'HP')
+        if self.name != self.player_name:
+            print(self.description)
+    def random_enemy(self):
+        #obtain a random enemy for the floor
+        current_enemy = Enemies.enemy_list[random.randint(0, len(Enemies.enemy_list) - 1)]
+        return current_enemy.name, current_enemy.damage, current_enemy.health, current_enemy.description
+    def generate_enemies(self, floors):
+        for i in range(floors):
+            self.all_enemies.append(self.random_enemy())
+    def load_enemy(self): #similar to get_player_stats, but for enemies
+        self.enemy_name = self.all_enemies[self.current_floor - 1][0]
+        self.enemy_damage = self.all_enemies[self.current_floor - 1][1]
+        self.enemy_health = self.all_enemies[self.current_floor - 1][2]
+        self.enemy_desc = self.all_enemies[self.current_floor - 1][3]
+    def get_player_stats(self, name):
+        #function to get attributes of Player
+        self.player_name, self.player_health, self.player_damage = Player.give_stats(self, name)
+    #Looped combat between the player and current enemy
+    def combat(self, name):
+        Player.load_enemy(self)
+        print(f'You encounter {self.enemy_name}')
+        print(self.enemy_damage, ' Dmg')
+        print(self.enemy_health, ' HP')
+        while self.enemy_health > 0:
+            action = input('\nWill you Attack, or Defend?').lower()  #ask whether to attack or defend
+            print('')
+            if action == 'attack':
+                Player.attack(self, name)
+                time.sleep(0.75)
+                defending = 'no'
+            elif action == 'defend':    #if defend is picked, player will not attack
+                defending = 'yes'
+            if self.enemy_health <= 0:    #ensures enemies cannot attack once killed
+                continue
+            else:
+                Enemies.attack(self, defending)
+                time.sleep(0.75)
+                if self.player_health <= 0:
+                    print(f'Defeated \nFloor Reached: {self.current_floor}')
+        self.current_floor += 1
+        self.player_health += 10
+        print('You found bandages past the enemy, healing for 10 HP, Current HP: ', self.player_health)
+
+
+# In[5]:
+
+
+#class to store enemies and show their stats, will be stored in Entity class to be able to attack player
+class Enemies(Dungeon):
+    enemy_list = []  #preset list of enemies for generation
+    def __init__(self, name, health, damage, description, mult):
+        self.name = name
+        self.health = health * mult
+        self.description = description
+        self.damage = damage * mult
+        self.enemy_list.append(self)
+    def attack(self, defending):
+        if random.randint(0,100) < 12:
+            self.player_health -= self.enemy_damage * 2
+            print(f'{self.enemy_name} crit for {self.enemy_damage * 2} damage!, bypassing any defense \nCurrent health: {self.player_health}HP')
+        elif defending == 'yes':
+            self.player_health -= self.enemy_damage * 0.5
+            print(f'{self.enemy_name} dealt {self.enemy_damage * 0.5} damage \nCurrent health: {self.player_health}HP')
+        else:
+            self.player_health -= self.enemy_damage
+            print(f'{self.enemy_name} dealt {self.enemy_damage} damage \nCurrent health: {self.player_health}HP')
+    def give_stats(self):
+        #function to return child's attributes to the parent for later use
+        return self.name, self.health, self.damage
+
+
+# In[6]:
+
+
+#Class for player, will be stored in Entity class to take and deal damage
+class Player(Dungeon):
+    def __init__(self, name):
+        self.health = 150
+        self.damage = 10
+        self.name = name
+        self.enemy_name = ''
+        self.enemy_damage = 0
+        self.enemy_health = 0
+    def attack(self, name):
+        if random.randint(0,100) < 12:
+            self.enemy_health -= self.player_damage * 3
+            print(f'{name} Crit for {self.player_damage * 3}dmg! \n{self.enemy_name}: {self.enemy_health}HP')
+        else:
+            self.enemy_health -= Player(name).damage
+            print(f'{name} Dealt {self.player_damage}dmg \n{self.enemy_name}: {self.enemy_health}HP')
+        if self.enemy_health <= 0:
+            print(f'{name} Defeated {self.enemy_name}')
+        return self.enemy_health
+    def give_stats(self, name):
+        #function to return child's attributes to the parent for later use
+        return str(Player(name).name), Player(name).health, Player(name).damage
+
+
+def welcome():
+    #Welcoming
+    print('Welcome to CapStone')
+    name = input('What will you name yourself?')
+    print(f'{name}, Please select the difficulty you wish to play')
+    difficulty = input('Easy, Normal, or Hard: ')
+    difficulty = difficulty.lower()    
+    if difficulty == 'easy':
+        mult = 0.5
+        floors = 10
+    elif difficulty == 'normal':
+        mult = 1
+        floors = 20
+    elif difficulty == 'hard':
+        mult = 1.5
+        floors = 30
+    print(mult)
+    print(floors)
+    return mult, floors, name
+
+
+
+#function to decrease the size of main() when creating enemies
+def create_enemies(mult):
+    goblin = Enemies('Goblin', 50, 5, 'A basic goblin', mult) #Basic enemy
+    ghoul = Enemies('Ghoul', 70, 3, 'A ghoul who seems to have a healthy grudge, but their ghostly form weakens their attacks', mult) #More health, Less atk
+    zombie = Enemies('Zombie', 30, 8, 'Rotting away, but hits with all their force', mult) #Less health, more atk
+    deadly_plant = Enemies('Deadly Plant', 40, 6, 'A plant which gained sentience, and holds a grudge against humanity', mult)
+    haunted_piano = Enemies('Haunted Piano', 100, 10, "Its a Piano, of course it's gonna be tanky, hopefully you don't encounter too many of them", mult)
+    skeleton = Enemies('Skeleton', 20, 5, 'Why do people expect a pile of bones to do a lot of damage?', mult)
+    troll = Enemies('Troll', 50, 8, 'Cousin of the Goblin, anger for being compared to their least favorite cousin', mult)
+    ash_pile = Enemies('Pile of Ash', 0, 100, "Luckily something got them first, atleast it's a free rest spot", mult)
+
+
+
+def main():
+    mult, floors, name = welcome()   #runs the function to welcome player
+    player = Player(name)    #create player class
+    dungeon = Dungeon(floors)    #create dungeon class
+    
+    #creating enemies for the enemies class
+    create_enemies(mult)
+    
+    #loop to go through every floor fighting enemies
+    start_time = time.time()   #To show final time at the end of the code
+    dungeon.generate_enemies(floors)     #create enemy list
+    dungeon.get_player_stats(name)
+    for floor in range(floors):        #go through every floor fighting the floor's corresponding enemy
+        print(f'\nEntering Floor {floor+1}')
+        dungeon.combat(name)
+        time.sleep(1)
+        if dungeon.player_health <= 0:
+            continue
+    if dungeon.player_health <= 0:
+        return
+    else:
+        print(f'Congrats! You Finished all {floors} Floors.')
+    end_time = time.time()
+    final_time = round(end_time - start_time, 2)
+    print('Time Elapsed: ', final_time)    #Show total time it took
+
+
+main()
+
+
+
+
