@@ -1,4 +1,9 @@
 # python_capstone_IanSandoval
+
+The code will run without the need to add anything or move it around, I've formatted it to be able to run properly from top to bottom. All that you need to do is copy paste the code into a python scripter
+
+**Info below is not required to run the code**
+
 This is the project I made for my school's final project. It's a game simulation with random enemies generated each run
 CapStone Project Final
 I was tasked with making a CapStone project for my college class's final, and I chose to make a text based game simulation
@@ -11,4 +16,6 @@ I have the project structured by having classes being defined first(This include
 The concepts used include: Classes, Inheritance, Functions, Variables, Arithmetic, Conditionals, User Input, Loops, and the use of different Data types(string and float values)
 If I return to this project, I plan on adding more actions in battle, and the use of items to heal mid fight, and maybe an indicator for when an enemy will crit.
 
-By Ian Sandoval
+
+
+Code by Ian Sandoval
